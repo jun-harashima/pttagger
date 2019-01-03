@@ -31,9 +31,9 @@ Pre-processing
 
 Suppose that you have the following examples of named entity recognition:
 
-| Joe/B-PER Smith/I-PER goes/O to/O Japan/B-LOC ./O
-| Jane/B-PER Smith/I-PER belongs/O to/O Kyoto/B-ORG University/I-ORG ./O
-| ...
+- Joe/B-PER Smith/I-PER goes/O to/O Japan/B-LOC ./O
+- Jane/B-PER Smith/I-PER belongs/O to/O Kyoto/B-ORG University/I-ORG ./O
+- ...
 
 First, give the examples to construct a ``Dataset`` object like this:
 
