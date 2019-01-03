@@ -3,16 +3,14 @@ from pttagger.model import Model
 from pttagger.dataset import Dataset
 
 
-EMBEDDING_DIMS = [2, 2]
-HIDDEN_DIMS = [4, 4]
+EMBEDDING_DIMS = [100]
+HIDDEN_DIMS = [10]
 
 examples = [
-    {'Xs': [['人参', 'を', '切る'], ['名詞', '助詞', '動詞']],
-     'Y': ['B-Food', 'O', 'B-Action']},
-    {'Xs': [['ざっくり', '切る'], ['副詞', '動詞']],
-     'Y': ['O', 'B-Action']},
-    {'Xs': [['九条', '葱', 'は', '刻む'], ['名詞', '名詞', '助詞', '動詞']],
-     'Y': ['B-Food', 'I-Food', 'O', 'B-Action']}
+    {'Xs': [['Joe', 'Doe', 'goes', 'to', 'Japan', '.']],
+     'Y': ['B-PER', 'I-PER', 'O', 'O', 'B-LOC', 'O']},
+    {'Xs': [['Jane', 'Doe', 'belongs', 'to', 'Kyoto', 'University', '.']],
+     'Y': ['B-PER', 'I-PER', 'O', 'O', 'B-ORG', 'I-ORG', 'O']}
 ]
 dataset = Dataset(examples)
 
@@ -24,14 +22,10 @@ model.train(dataset)
 torch.save(model.state_dict(), 'ner.model')
 
 model.load_state_dict(torch.load('ner.model'))
-examples = [
-    {'Xs': [['葱', 'を', '切る'], ['名詞', '助詞', '動詞']],
-     'Y': ['B-Food', 'O', 'B-Action']},
-    {'Xs': [['細く', '切る'], ['副詞', '動詞']],
-     'Y': ['O', 'B-Action']},
-    {'Xs': [['三浦', '大根', 'は', '刻む'], ['名詞', '名詞', '助詞', '動詞']],
-     'Y': ['B-Food', 'I-Food', 'O', 'B-Action']}
+test_examples = [
+    {'Xs': [['Richard', 'Roe', 'comes', 'to', 'America', '.']],
+     'Y': ['B-PER', 'I-PER', 'O', 'O', 'B-LOC', 'O']}
 ]
-dataset = Dataset(examples)
-results = model.test(dataset)
+test_dataset = Dataset(test_examples)
+results = model.test(test_dataset)
 print(results)
