@@ -31,13 +31,15 @@ Pre-processing
 
 Suppose that you have the following examples of named entity recognition:
 
-   Joe/B-PER Smith/I-PER goes/O to/O Japan/B-LOC ./O
-   Jane/B-PER Smith/I-PER belongs/O to/O Kyoto/B-ORG University/I-ORG ./O
-   ...
+| Joe/B-PER Smith/I-PER goes/O to/O Japan/B-LOC ./O
+| Jane/B-PER Smith/I-PER belongs/O to/O Kyoto/B-ORG University/I-ORG ./O
+| ...
 
 First, give the examples to construct a ``Dataset`` object like this:
 
 .. code-block:: python
+
+   from pttagger.dataset import Dataset
 
    examples = [
        {'Xs': [['Joe', 'Doe', 'goes', 'to', 'Japan', '.']],
@@ -50,6 +52,8 @@ First, give the examples to construct a ``Dataset`` object like this:
 
 You can also use multiple inputs as a value of ``Xs``. In the following case, ``Xs`` has not only word information but also POS information:
 
+.. code-block:: python
+
    examples = [
        {'Xs': [['Joe', 'Doe', 'goes', 'to', 'Japan', '.'], ['NNP', 'NNP', 'VBZ', 'TO', 'NNP', '.']],
         'Y': ['B-PER', 'I-PER', 'O', 'O', 'B-LOC', 'O']},
@@ -61,8 +65,8 @@ You can also use multiple inputs as a value of ``Xs``. In the following case, ``
 
 Now, ``dataset`` has the following two indices:
 
-- ``x_to_index``: e.g., [{'<PAD>': 0, '<UNK>': 1, 'Joe': 2, 'Doe': 3, ...}]
-- ``y_to_index``: e.g., {'<PAD>': 0, '<UNK>': 1, 'B-PER': 2, 'I-PER': 3, ...}
+- ``x_to_index``: e.g., ``[{'<PAD>': 0, '<UNK>': 1, 'Joe': 2, 'Doe': 3, ...}]``
+- ``y_to_index``: e.g., ``{'<PAD>': 0, '<UNK>': 1, 'B-PER': 2, 'I-PER': 3, ...}``
 
 If you use multiple inputs, ``x_to_index`` has indices for each input.
 
@@ -72,6 +76,8 @@ Training
 Construct a ``Model`` object and train it as follows:
 
 .. code-block:: python
+
+   from pttagger.model import Model
 
    EMBEDDING_DIMS = [100]  # if you use multiple inputs, set a dimension for each input
    HIDDEN_DIMS = [10]  # the same as above
@@ -89,7 +95,7 @@ Predict tags for test examples like this:
 
    test_examples = [
        {'Xs': [['Richard', 'Roe', 'comes', 'to', 'America', '.']],
-        'Y': ['B-PERSON', 'I-PERSON', 'O', 'O', 'B-LOCATION', 'O']}
+        'Y': ['B-PER', 'I-PER', 'O', 'O', 'B-LOC', 'O']}
    ]
    test_dataset = Dataset(test_examples)
    results = model.test(dataset)
