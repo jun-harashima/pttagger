@@ -15,7 +15,7 @@ class Model(nn.Module):
 
     # For simplicity, use the same pad_index for Xs[0], Xs[1], ..., and Y
     def __init__(self, embedding_dims, hidden_dims, x_set_sizes, y_set_size,
-                 pad_index=0, batch_size=16):
+                 pad_index=0, batch_size=16, use_lstm=False):
         super(Model, self).__init__()
         self.embedding_dims = embedding_dims
         self.hidden_dims = hidden_dims
@@ -23,10 +23,11 @@ class Model(nn.Module):
         self.y_set_size = y_set_size
         self.batch_size = batch_size
         self.pad_index = pad_index
+        self.use_lstm = use_lstm
         self.use_cuda = self._init_use_cuda()
         self.device = self._init_device()
         self.embeddings = self._init_embeddings()
-        self.lstm = self._init_lstm()
+        self.rnn = self._init_rnn()
         self.hidden2y = self._init_hidden2y()
 
     def _init_use_cuda(self):
@@ -43,10 +44,20 @@ class Model(nn.Module):
             embeddings.append(embedding)
         return embeddings
 
+    def _init_rnn(self):
+        if self.use_lstm:
+            return self._init_lstm()
+        return self._init_gru()
+
     def _init_lstm(self):
         lstm = nn.LSTM(sum(self.embedding_dims), sum(self.hidden_dims),
                        bidirectional=True)
         return lstm.cuda() if self.use_cuda else lstm
+
+    def _init_gru(self):
+        gru = nn.GRU(sum(self.embedding_dims), sum(self.hidden_dims),
+                     bidirectional=True)
+        return gru.cuda() if self.use_cuda else gru
 
     def _init_hidden2y(self):
         hidden2y = nn.Linear(sum(self.hidden_dims) * 2, self.y_set_size)
@@ -56,13 +67,15 @@ class Model(nn.Module):
         # The axes semantics are (num_layers, minibatch_size, hidden_dim)
         zeros = torch.zeros(2, self.batch_size, sum(self.hidden_dims),
                             device=self.device)
-        return (zeros, zeros)
+        if self.use_lstm:
+            return (zeros, zeros)
+        return zeros
 
     def forward(self, Xs, lengths):
         Xs = self._embed(Xs)
         X = torch.cat(Xs, 2)
         X = self._pack(X, lengths)
-        X, self.hidden = self._lstm(X)
+        X, self.hidden = self._rnn(X)
         X, _ = self._unpack(X)
         X = X.contiguous().view(-1, X.shape[2])
         # Note that hidden2y returns values also for padded elements. We
@@ -145,8 +158,8 @@ class Model(nn.Module):
     def _pack(self, X, lengths):
         return U.rnn.pack_padded_sequence(X, lengths, batch_first=True)
 
-    def _lstm(self, X):
-        return self.lstm(X, self.hidden)
+    def _rnn(self, X):
+        return self.rnn(X, self.hidden)
 
     def _unpack(self, X):
         return U.rnn.pad_packed_sequence(X, batch_first=True)
