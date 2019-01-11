@@ -15,15 +15,16 @@ class Model(nn.Module):
 
     # For simplicity, use the same pad_index for Xs[0], Xs[1], ..., and Y
     def __init__(self, embedding_dims, hidden_dims, x_set_sizes, y_set_size,
-                 pad_index=0, batch_size=16, use_lstm=False):
+                 pad_index=0, batch_size=16, use_lstm=False, num_layers=1):
         super(Model, self).__init__()
         self.embedding_dims = embedding_dims
         self.hidden_dims = hidden_dims
         self.x_set_sizes = x_set_sizes
         self.y_set_size = y_set_size
-        self.batch_size = batch_size
         self.pad_index = pad_index
+        self.batch_size = batch_size
         self.use_lstm = use_lstm
+        self.num_layers = num_layers
         self.use_cuda = self._init_use_cuda()
         self.device = self._init_device()
         self.embeddings = self._init_embeddings()
@@ -51,12 +52,12 @@ class Model(nn.Module):
 
     def _init_lstm(self):
         lstm = nn.LSTM(sum(self.embedding_dims), sum(self.hidden_dims),
-                       bidirectional=True)
+                       num_layers=self.num_layers, bidirectional=True)
         return lstm.cuda() if self.use_cuda else lstm
 
     def _init_gru(self):
         gru = nn.GRU(sum(self.embedding_dims), sum(self.hidden_dims),
-                     bidirectional=True)
+                     num_layers=self.num_layers, bidirectional=True)
         return gru.cuda() if self.use_cuda else gru
 
     def _init_hidden2y(self):
@@ -65,8 +66,8 @@ class Model(nn.Module):
 
     def _init_hidden(self):
         # The axes semantics are (num_layers, minibatch_size, hidden_dim)
-        zeros = torch.zeros(2, self.batch_size, sum(self.hidden_dims),
-                            device=self.device)
+        zeros = torch.zeros(self.num_layers * 2, self.batch_size,
+                            sum(self.hidden_dims), device=self.device)
         if self.use_lstm:
             return (zeros, zeros)
         return zeros
