@@ -17,7 +17,7 @@ class TestModel(unittest.TestCase):
                             '細く': 8, '刻む': 9}]
 
         self.model = Model([2], [4], [len(self.x_to_index[0])],
-                           len(self.y_to_index), batch_size=3)
+                           len(self.y_to_index), batch_size=3, use_lstm=True)
         self.embedding_weight = Parameter(torch.tensor([[0, 0],  # for <PAD>
                                                         [1, 2],  # for <UNK>
                                                         [3, 4],
@@ -64,7 +64,7 @@ class TestModel(unittest.TestCase):
         self.assertEqual(batches[0], (self.X1, self.Y))
 
         model = Model([2], [4], [len(self.x_to_index[0])],
-                      len(self.y_to_index), batch_size=4)
+                      len(self.y_to_index), batch_size=4, use_lstm=True)
         batches = model._split(dataset)
         self.assertEqual(batches[0], (self.X1, self.Y))
 
@@ -88,9 +88,9 @@ class TestModel(unittest.TestCase):
         self.assertTrue(torch.equal(X5.data, self.X5.data))
         self.assertTrue(torch.equal(X5.batch_sizes, self.X5.batch_sizes))
 
-    def test__lstm(self):
+    def test__rnn(self):
         self.model.hidden = self.model._init_hidden()
-        X6, hidden = self.model._lstm(self.X5)
+        X6, hidden = self.model._rnn(self.X5)
         # (9, 8) is length of packed sequence and dimension of hidden
         self.assertEqual(X6.data.shape, (9, 8))
         self.assertEqual(hidden[0].shape, (2, 3, 4))
@@ -98,7 +98,7 @@ class TestModel(unittest.TestCase):
 
     def test__unpack(self):
         self.model.hidden = self.model._init_hidden()
-        X6, hidden = self.model._lstm(self.X5)
+        X6, hidden = self.model._rnn(self.X5)
         X7 = self.model._unpack(X6)
         # batch size, sequence length, hidden size
         self.assertEqual(X7[0].data.shape, torch.Size([3, 4, 8]))
