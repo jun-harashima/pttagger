@@ -10,7 +10,7 @@ pttagger
 
 pttagger is a simple PyTorch-based tagger which has the following features:
 
-- bi-directional LSTM
+- stacked bi-directional RNN (GRU or LSTM)
 - variable-sized mini-batches
 - multiple inputs
 
@@ -85,6 +85,11 @@ Construct a ``Model`` object and train it as follows:
    y_set_size = len(dataset.y_to_index)
    model = Model(EMBEDDING_DIMS, HIDDEN_DIMS, x_set_sizes, y_set_size)
    model.train(dataset)
+
+You can also use the following parameters:
+
+- **use_lstm** - If ``True``, uses LSTM. Default: ``False`` (uses GRU)
+- **num_layers** - Number of recurrent layers. Default: ``1``
 
 Test
 ----
