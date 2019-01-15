@@ -74,7 +74,7 @@ class Model(nn.Module):
 
     def forward(self, Xs, lengths):
         Xs = self._embed(Xs)
-        X = torch.cat(Xs, 2)
+        X = self._cat(Xs)
         X = self._pack(X, lengths)
         X, self.hidden = self._rnn(X)
         X, _ = self._unpack(X)
@@ -155,6 +155,9 @@ class Model(nn.Module):
 
     def _embed(self, Xs):
         return [self.embeddings[i](X) for i, X in enumerate(Xs)]
+
+    def _cat(self, Xs):
+        return torch.cat(Xs, 2)
 
     def _pack(self, X, lengths):
         return U.rnn.pack_padded_sequence(X, lengths, batch_first=True)
