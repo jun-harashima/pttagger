@@ -83,6 +83,15 @@ class TestModel(unittest.TestCase):
             Xs = self.model._embed([torch.tensor(self.X3)])
             self.assertTrue(torch.equal(Xs[0], self.X4))
 
+    def test__cat(self):
+        X4 = torch.tensor([[[1], [2], [3], [4]], [[5], [6], [7], [8]]])
+        Xs = [X4, X4]
+        self.assertTrue(torch.equal(
+            self.model._cat(Xs),
+            torch.tensor([[[1, 1], [2, 2], [3, 3], [4, 4]],
+                          [[5, 5], [6, 6], [7, 7], [8, 8]]])
+        ))
+
     def test__pack(self):
         X5 = self.model._pack(self.X4, self.lengths)
         self.assertTrue(torch.equal(X5.data, self.X5.data))
