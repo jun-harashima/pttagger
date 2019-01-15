@@ -72,9 +72,9 @@ class Model(nn.Module):
             return (zeros, zeros)
         return zeros
 
-    def forward(self, Xs, lengths):
+    def forward(self, Xs, _X, lengths):
         Xs = self._embed(Xs)
-        X = self._cat(Xs)
+        X = self._cat(Xs, torch.tensor(_X))
         X = self._pack(X, lengths)
         X, self.hidden = self._rnn(X)
         X, _ = self._unpack(X)
@@ -92,13 +92,13 @@ class Model(nn.Module):
             batches = self._split(train_set)
             random.shuffle(batches)
             loss_sum = 0
-            for *Xs, Y in batches:
+            for *Xs, _X, Y in batches:
                 self.zero_grad()
                 self.hidden = self._init_hidden()
                 for i in range(len(Xs)):
                     Xs[i], lengths, _ = self._tensorize(Xs[i])
                 Y, _, _ = self._tensorize(Y)
-                Y_hat = self(Xs, lengths)
+                Y_hat = self(Xs, _Xs, lengths)
                 loss = self._calc_cross_entropy(Y_hat, Y)
                 loss.backward()
                 optimizer.step()
@@ -110,12 +110,12 @@ class Model(nn.Module):
     def test(self, test_set):
         results = []
         batches = self._split(test_set)
-        for *Xs, _ in batches:
+        for *Xs, _X, _ in batches:
             self.hidden = self._init_hidden()
             for i in range(len(Xs)):
                 Xs[i], lengths, indices = self._tensorize(Xs[i])
             mask = (Xs[0] > 0).long()
-            Y_hat = self(Xs, lengths)
+            Y_hat = self(Xs, _X, lengths)
             self._extend(results, Y_hat, mask, indices)
         return results
 
@@ -134,7 +134,7 @@ class Model(nn.Module):
     def _split(self, dataset):
         if len(dataset.Y) < self.batch_size:
             self.batch_size = len(dataset.Y)
-        Zs = dataset.Xs + [dataset.Y]
+        Zs = dataset.Xs + [dataset._X] + [dataset.Y]
         return list(zip(*[zip(*[iter(Z)]*self.batch_size) for Z in Zs]))
 
     def _tensorize(self, Z):
@@ -156,8 +156,8 @@ class Model(nn.Module):
     def _embed(self, Xs):
         return [self.embeddings[i](X) for i, X in enumerate(Xs)]
 
-    def _cat(self, Xs):
-        return torch.cat(Xs, 2)
+    def _cat(self, Xs, _X):
+        return torch.cat(Xs + [_X], 2)
 
     def _pack(self, X, lengths):
         return U.rnn.pack_padded_sequence(X, lengths, batch_first=True)

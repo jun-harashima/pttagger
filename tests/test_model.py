@@ -61,12 +61,13 @@ class TestModel(unittest.TestCase):
         ]
         dataset = Dataset(examples)
         batches = self.model._split(dataset)
-        self.assertEqual(batches[0], (self.X1, self.Y))
+        _X = [[], [], []]
+        self.assertEqual(batches[0], (self.X1, _X, self.Y))
 
         model = Model([2], [4], [len(self.x_to_index[0])],
                       len(self.y_to_index), batch_size=4, use_lstm=True)
         batches = model._split(dataset)
-        self.assertEqual(batches[0], (self.X1, self.Y))
+        self.assertEqual(batches[0], (self.X1, _X, self.Y))
 
     def test__sort(self):
         X2, indices = self.model._sort(self.X1)
@@ -86,10 +87,17 @@ class TestModel(unittest.TestCase):
     def test__cat(self):
         X4 = torch.tensor([[[1], [2], [3], [4]], [[5], [6], [7], [8]]])
         Xs = [X4, X4]
+        _X = [[[], [], [], []], [[], [], [], []]]
         self.assertTrue(torch.equal(
-            self.model._cat(Xs),
+            self.model._cat(Xs, torch.tensor(_X)),
             torch.tensor([[[1, 1], [2, 2], [3, 3], [4, 4]],
                           [[5, 5], [6, 6], [7, 7], [8, 8]]])
+
+        _X = [[[8], [7], [6], [5]], [[4], [3], [2], [1]]]
+        self.assertTrue(torch.equal(
+            self.model._cat(Xs, torch.tensor(_X)),
+            torch.tensor([[[1, 1, 8], [2, 2, 7], [3, 3, 6], [4, 4, 5]],
+                          [[5, 5, 4], [6, 6, 3], [7, 7, 2], [8, 8, 1]]])
         ))
 
     def test__pack(self):

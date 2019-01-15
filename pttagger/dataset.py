@@ -6,7 +6,7 @@
 
 class Dataset():
 
-    def __init__(self, examples, x_to_index=None, y_to_index=None):
+    def __init__(self, examples, _X=None, x_to_index=None, y_to_index=None):
         self.x_to_index = x_to_index
         X_sets = [[example['Xs'][i] for example in examples]
                   for i in range(len(examples[0]['Xs']))]
@@ -25,6 +25,12 @@ class Dataset():
         self.Xs = []
         for i in range(len(examples[0]['Xs'])):
             self.Xs.append(self._degitize(X_sets[i], self.x_to_index[i]))
+
+        self._X = _X
+        if _X is None:
+            self._X = []
+            for i in range(len(examples[0]['Xs'])):
+                self._X.append([])
 
         self.Y = self._degitize(Y_set, self.y_to_index)
 
