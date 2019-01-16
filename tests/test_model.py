@@ -9,6 +9,9 @@ from pttagger.dataset import Dataset
 
 class TestModel(unittest.TestCase):
 
+    def assertTorchEqual(self, x, y):
+        self.assertTrue(torch.equal(x, y))
+
     def setUp(self):
         self.y_to_index = {'<PAD>': 0, '<UNK>': 1, '名詞': 2, '助詞': 3,
                            '動詞': 4, '副詞': 5, '形容詞': 6}
@@ -81,7 +84,7 @@ class TestModel(unittest.TestCase):
         with patch.object(self.model.embeddings[0], 'weight',
                           self.embedding_weight):
             Xs = self.model._embed([torch.tensor(self.X3)])
-            self.assertTrue(torch.equal(Xs[0], self.X4))
+            self.assertTorchEqual(Xs[0], self.X4)
 
     def test__cat(self):
         X4 = torch.tensor([[[1], [2], [3], [4]], [[5], [6], [7], [8]]])
@@ -94,8 +97,8 @@ class TestModel(unittest.TestCase):
 
     def test__pack(self):
         X5 = self.model._pack(self.X4, self.lengths)
-        self.assertTrue(torch.equal(X5.data, self.X5.data))
-        self.assertTrue(torch.equal(X5.batch_sizes, self.X5.batch_sizes))
+        self.assertTorchEqual(X5.data, self.X5.data)
+        self.assertTorchEqual(X5.batch_sizes, self.X5.batch_sizes)
 
     def test__rnn(self):
         self.model.hidden = self.model._init_hidden()
@@ -112,11 +115,11 @@ class TestModel(unittest.TestCase):
         # batch size, sequence length, hidden size
         self.assertEqual(X7[0].data.shape, torch.Size([3, 4, 8]))
         # padded values should be zeros
-        self.assertTrue(torch.equal(X7[0].data[1][3], torch.zeros(8)))
-        self.assertTrue(torch.equal(X7[0].data[2][2], torch.zeros(8)))
-        self.assertTrue(torch.equal(X7[0].data[2][3], torch.zeros(8)))
+        self.assertTorchEqual(X7[0].data[1][3], torch.zeros(8))
+        self.assertTorchEqual(X7[0].data[2][2], torch.zeros(8))
+        self.assertTorchEqual(X7[0].data[2][3], torch.zeros(8))
         # batch sizes
-        self.assertTrue(torch.equal(X7[1], torch.tensor([4, 3, 2])))
+        self.assertTorchEqual(X7[1], torch.tensor([4, 3, 2]))
 
     # def test__calc_cross_entropy(self):
     #     X = torch.tensor([[[-2.02, -1.97, -1.66, -1.91, -1.51, -1.75],
