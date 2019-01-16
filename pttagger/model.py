@@ -14,10 +14,12 @@ class Model(nn.Module):
     EPOCH_NUM = 100
 
     # For simplicity, use the same pad_index for Xs[0], Xs[1], ..., and Y
-    def __init__(self, embedding_dims, hidden_dims, x_set_sizes, y_set_size,
-                 pad_index=0, batch_size=16, use_lstm=False, num_layers=1):
+    def __init__(self, embedding_dims, nonembedding_dims, hidden_dims,
+                 x_set_sizes, y_set_size, pad_index=0, batch_size=16,
+                 use_lstm=False, num_layers=1):
         super(Model, self).__init__()
         self.embedding_dims = embedding_dims
+        self.nonembedding_dims = nonembedding_dims
         self.hidden_dims = hidden_dims
         self.x_set_sizes = x_set_sizes
         self.y_set_size = y_set_size
@@ -51,13 +53,15 @@ class Model(nn.Module):
         return self._init_gru()
 
     def _init_lstm(self):
-        lstm = nn.LSTM(sum(self.embedding_dims), sum(self.hidden_dims),
-                       num_layers=self.num_layers, bidirectional=True)
+        lstm = nn.LSTM(sum(self.embedding_dims) + sum(self.nonembedding_dims),
+                       sum(self.hidden_dims), num_layers=self.num_layers,
+                       bidirectional=True)
         return lstm.cuda() if self.use_cuda else lstm
 
     def _init_gru(self):
-        gru = nn.GRU(sum(self.embedding_dims), sum(self.hidden_dims),
-                     num_layers=self.num_layers, bidirectional=True)
+        gru = nn.GRU(sum(self.embedding_dims) + sum(self.nonembedding_dims),
+                     sum(self.hidden_dims), num_layers=self.num_layers,
+                     bidirectional=True)
         return gru.cuda() if self.use_cuda else gru
 
     def _init_hidden2y(self):
@@ -154,7 +158,12 @@ class Model(nn.Module):
         return Z
 
     def _embed(self, Xs):
-        return [self.embeddings[i](X) for i, X in enumerate(Xs)]
+        length = len(self.embeddings)
+        return [self.embeddings[i](X) if i < length else self._unsqueeze(X)
+                for i, X in enumerate(Xs)]
+
+    def _unsqueeze(self, X):
+        return torch.unsqueeze(X.to(torch.float), 2)
 
     def _cat(self, Xs):
         return torch.cat(Xs, 2)
