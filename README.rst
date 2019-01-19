@@ -65,8 +65,8 @@ You can also use multiple inputs as a value of ``Xs``. In the following case, ``
 
 Now, ``dataset`` has the following two indices:
 
-- ``x_to_index``: e.g., ``[{'<PAD>': 0, '<UNK>': 1, 'Joe': 2, 'Doe': 3, ...}]``
-- ``y_to_index``: e.g., ``{'<PAD>': 0, '<UNK>': 1, 'B-PER': 2, 'I-PER': 3, ...}``
+- **x_to_index** - E.g., ``[{'<PAD>': 0, '<UNK>': 1, 'Joe': 2, 'Doe': 3, ...}]``
+- **y_to_index** - E.g., ``{'<PAD>': 0, '<UNK>': 1, 'B-PER': 2, 'I-PER': 3, ...}``
 
 If you use multiple inputs, ``x_to_index`` has indices for each input.
 
