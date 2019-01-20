@@ -77,6 +77,7 @@ class Model(nn.Module):
         return zeros
 
     def forward(self, Xs, lengths):
+        self.hidden = self._init_hidden()
         Xs = self._embed(Xs)
         X = self._cat(Xs)
         X = self._pack(X, lengths)
@@ -98,7 +99,6 @@ class Model(nn.Module):
             loss_sum = 0
             for *Xs, Y in batches:
                 self.zero_grad()
-                self.hidden = self._init_hidden()
                 for i in range(len(Xs)):
                     Xs[i], lengths, _ = self._tensorize(Xs[i])
                 Y, _, _ = self._tensorize(Y)
@@ -115,7 +115,6 @@ class Model(nn.Module):
         results = []
         batches = self._split(test_set)
         for *Xs, _ in batches:
-            self.hidden = self._init_hidden()
             for i in range(len(Xs)):
                 Xs[i], lengths, indices = self._tensorize(Xs[i])
             mask = (Xs[0] > 0).long()
