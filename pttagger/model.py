@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.nn.utils as U
-import torch.optim as optim
 from pttagger.base import Base
 
 

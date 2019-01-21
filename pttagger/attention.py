@@ -1,8 +1,6 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.nn.utils as U
-import torch.optim as optim
 from pttagger.base import Base
 
 
@@ -13,7 +11,8 @@ class SelfAttention(Base):
 
     EPOCH_NUM = 100
 
-    def __init__(self, embedding_dims, hidden_dim, x_set_sizes, y_set_size, pad_index=0, batch_size=16):
+    def __init__(self, embedding_dims, hidden_dim, x_set_sizes, y_set_size,
+                 pad_index=0, batch_size=16):
         super(SelfAttention, self).__init__()
         self.embedding_dims = embedding_dims
         self.hidden_dim = hidden_dim
