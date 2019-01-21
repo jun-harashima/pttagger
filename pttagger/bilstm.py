@@ -8,15 +8,15 @@ from pttagger.base import Base
 torch.manual_seed(1)
 
 
-class Model(Base):
+class BiLSTM(Base):
 
     # For simplicity, use the same pad_index for Xs[0], Xs[1], ..., and Y
     def __init__(self, embedding_dims, nonembedding_dims, hidden_dim,
                  x_set_sizes, y_set_size, pad_index=0, batch_size=16,
                  use_lstm=False, num_layers=1):
-        super(Model, self).__init__(embedding_dims, nonembedding_dims,
-                                    hidden_dim, x_set_sizes, y_set_size,
-                                    pad_index=pad_index, batch_size=batch_size)
+        super(BiLSTM, self).__init__(embedding_dims, nonembedding_dims,
+                                     hidden_dim, x_set_sizes, y_set_size,
+                                     pad_index=pad_index, batch_size=batch_size)
         self.use_lstm = use_lstm
         self.num_layers = num_layers
         self.rnn = self._init_rnn()
