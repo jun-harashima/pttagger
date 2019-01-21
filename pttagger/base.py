@@ -8,6 +8,20 @@ class Base(nn.Module):
 
     EPOCH_NUM = 100
 
+    def __init__(self, embedding_dims, nonembedding_dims, hidden_dim,
+                 x_set_sizes, y_set_size, pad_index=0, batch_size=16):
+        super(Base, self).__init__()
+        self.embedding_dims = embedding_dims
+        self.nonembedding_dims = nonembedding_dims
+        self.hidden_dim = hidden_dim
+        self.x_set_sizes = x_set_sizes
+        self.y_set_size = y_set_size
+        self.pad_index = pad_index
+        self.batch_size = batch_size
+        self.use_cuda = self._init_use_cuda()
+        self.device = self._init_device()
+        self.embeddings = self._init_embeddings()
+
     def _init_use_cuda(self):
         return torch.cuda.is_available()
 
@@ -85,6 +99,14 @@ class Base(nn.Module):
     def _sort(self, Z):
         indices, Z = zip(*sorted(enumerate(Z), key=lambda z: -len(z[1])))
         return list(Z), list(indices)
+
+    def _embed(self, Xs):
+        length = len(self.embeddings)
+        return [self.embeddings[i](X) if i < length else self._unsqueeze(X)
+                for i, X in enumerate(Xs)]
+
+    def _unsqueeze(self, X):
+        return torch.unsqueeze(X.to(torch.float), 2)
 
     def _pad(self, Z, lengths):
         for i, z in enumerate(Z):

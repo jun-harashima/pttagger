@@ -19,7 +19,7 @@ class TestModel(unittest.TestCase):
                             '切る': 4, 'ざっくり': 5, '葱': 6, 'は': 7,
                             '細く': 8, '刻む': 9}]
 
-        self.model = Model([2], [], [4], [len(self.x_to_index[0])],
+        self.model = Model([2], [], 4, [len(self.x_to_index[0])],
                            len(self.y_to_index), batch_size=3, use_lstm=True)
         self.embedding_weight = Parameter(torch.tensor([[0, 0],  # for <PAD>
                                                         [1, 2],  # for <UNK>
@@ -66,7 +66,7 @@ class TestModel(unittest.TestCase):
         batches = self.model._split(dataset)
         self.assertEqual(batches[0], (self.X1, self.Y))
 
-        model = Model([2], [], [4], [len(self.x_to_index[0])],
+        model = Model([2], [], 4, [len(self.x_to_index[0])],
                       len(self.y_to_index), batch_size=4, use_lstm=True)
         batches = model._split(dataset)
         self.assertEqual(batches[0], (self.X1, self.Y))
@@ -86,7 +86,7 @@ class TestModel(unittest.TestCase):
             Xs = self.model._embed([torch.tensor(self.X3)])
             self.assertTorchEqual(Xs[0], self.X4)
 
-        model = Model([2], [2], [4], [len(self.x_to_index[0]), 0],
+        model = Model([2], [2], 4, [len(self.x_to_index[0]), 0],
                       len(self.y_to_index), batch_size=3, use_lstm=True)
         with patch.object(model.embeddings[0], 'weight',
                           self.embedding_weight):

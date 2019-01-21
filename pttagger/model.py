@@ -11,24 +11,16 @@ torch.manual_seed(1)
 class Model(Base):
 
     # For simplicity, use the same pad_index for Xs[0], Xs[1], ..., and Y
-    def __init__(self, embedding_dims, nonembedding_dims, hidden_dims,
+    def __init__(self, embedding_dims, nonembedding_dims, hidden_dim,
                  x_set_sizes, y_set_size, pad_index=0, batch_size=16,
                  use_lstm=False, num_layers=1):
-        super(Model, self).__init__()
-        self.embedding_dims = embedding_dims
-        self.nonembedding_dims = nonembedding_dims
-        self.hidden_dims = hidden_dims
-        self.x_set_sizes = x_set_sizes
-        self.y_set_size = y_set_size
-        self.pad_index = pad_index
-        self.batch_size = batch_size
+        super(Model, self).__init__(embedding_dims, nonembedding_dims,
+                                    hidden_dim, x_set_sizes, y_set_size,
+                                    pad_index=pad_index, batch_size=batch_size)
         self.use_lstm = use_lstm
         self.num_layers = num_layers
-        self.use_cuda = self._init_use_cuda()
-        self.device = self._init_device()
-        self.embeddings = self._init_embeddings()
         self.rnn = self._init_rnn()
-        self.final = self._init_final(sum(self.hidden_dims) * 2)
+        self.final = self._init_final(self.hidden_dim * 2)
 
     def _init_rnn(self):
         if self.use_lstm:
@@ -37,20 +29,20 @@ class Model(Base):
 
     def _init_lstm(self):
         lstm = nn.LSTM(sum(self.embedding_dims) + sum(self.nonembedding_dims),
-                       sum(self.hidden_dims), num_layers=self.num_layers,
+                       self.hidden_dim, num_layers=self.num_layers,
                        bidirectional=True)
         return lstm.cuda() if self.use_cuda else lstm
 
     def _init_gru(self):
         gru = nn.GRU(sum(self.embedding_dims) + sum(self.nonembedding_dims),
-                     sum(self.hidden_dims), num_layers=self.num_layers,
+                     self.hidden_dim, num_layers=self.num_layers,
                      bidirectional=True)
         return gru.cuda() if self.use_cuda else gru
 
     def _init_hidden(self):
         # The axes semantics are (num_layers, minibatch_size, hidden_dim)
         zeros = torch.zeros(self.num_layers * 2, self.batch_size,
-                            sum(self.hidden_dims), device=self.device)
+                            self.hidden_dim, device=self.device)
         if self.use_lstm:
             return (zeros, zeros)
         return zeros
@@ -69,14 +61,6 @@ class Model(Base):
         X = F.log_softmax(X, dim=1)
         X = X.view(self.batch_size, lengths[0], self.y_set_size)
         return X
-
-    def _embed(self, Xs):
-        length = len(self.embeddings)
-        return [self.embeddings[i](X) if i < length else self._unsqueeze(X)
-                for i, X in enumerate(Xs)]
-
-    def _unsqueeze(self, X):
-        return torch.unsqueeze(X.to(torch.float), 2)
 
     def _pack(self, X, lengths):
         return U.rnn.pack_padded_sequence(X, lengths, batch_first=True)
