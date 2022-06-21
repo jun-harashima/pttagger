@@ -5,7 +5,7 @@ with open('README.rst') as readme_file:
 
 requirements = [ ]
 
-test_requirements = ['numpy==1.15.4', 'torch==0.4.1', ]
+test_requirements = ['numpy==1.22.0', 'torch==0.4.1', ]
 
 setup(
     author="Jun Harashima",
